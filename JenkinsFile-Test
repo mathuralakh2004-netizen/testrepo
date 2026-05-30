@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'UPSTREAM_BUILD_URL',
+            defaultValue: '',
+            description: 'Parent build URL'
+        )
+    }
+
+    stages {
+
+        stage('Run') {
+
+            steps {
+
+                script {
+
+                    currentBuild.description =
+                        "Triggered by: ${params.UPSTREAM_BUILD_URL}"
+
+                }
+
+                echo "Running downstream"
+
+                echo "Branch: ${env.BRANCH_NAME}"
+
+                echo "Triggered by:"
+                echo "${params.UPSTREAM_BUILD_URL}"
+
+                sleep(
+                    time: 30,
+                    unit: 'SECONDS'
+                )
+
+                echo "Downstream completed"
+            }
+        }
+    }
+}

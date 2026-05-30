@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Trigger Downstream') {
+
+            steps {
+
+                script {
+
+                    def branchName = env.BRANCH_NAME
+
+                    def downstreamJobPath =
+                        "Downstream/${branchName}"
+
+                    def downstreamJob =
+                        Jenkins.instance.getItemByFullName(
+                            downstreamJobPath
+                        )
+
+                    def latestBuild =
+                        downstreamJob.getLastBuild()
+
+                    def downstreamBuildNumber =
+                        latestBuild ? latestBuild.number + 1 : 1
+
+                    build(
+                        job: downstreamJobPath,
+                        wait: false,
+                        parameters: [
+                            string(
+                                name: 'UPSTREAM_BUILD_URL',
+                                value: env.BUILD_URL
+                            )
+                        ]
+                    )
+
+                    def downstreamBuildUrl =
+                        "${env.JENKINS_URL}job/Downstream/job/${branchName}/${downstreamBuildNumber}/"
+
+                    currentBuild.description =
+                        "<a href='${downstreamBuildUrl}'>Downstream #${downstreamBuildNumber}</a>"
+
+                    echo "Triggered ${downstreamJobPath}"
+
+                    echo "Downstream URL:"
+                    echo downstreamBuildUrl
+                }
+            }
+        }
+
+        stage('Continue Processing') {
+
+            steps {
+
+                echo "Upstream continues without waiting."
+
+            }
+        }
+    }
+}
